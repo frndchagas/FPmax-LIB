@@ -24,7 +24,7 @@ class FPmax
 		MFI_tree** mfitrees;
 		CFI_tree** cfitrees;
 
-		stack* list;
+		::stack* list;
 		int TRANSACTION_NO=0;
 		int ITEM_NO=100;
 		int THRESHOLD;
@@ -52,6 +52,7 @@ Parameters:
 Returns void since the output is written to `out`
 */
 void fpmax(char const * in, char const * out, unsigned int minsup);
+void fpmax(char const * in, char const * out, unsigned int minsup, unsigned int nlargest);
 
 /*
 Function for in-memory input/output

@@ -35,6 +35,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <cstdlib>
 #include "buffer.h"
 #include "common.h"
 
@@ -1019,9 +1020,9 @@ int FI_tree::FP_growth(FSout* fout)
 
 int FI_tree::FPmax(FSout* fout)
 {
-	static int ms=9;		//power2[i] is the smallest block size for memory  2**9 = 512
+static int ms=9;		//power2[i] is the smallest block size for memory  2**9 = 512
 
-	int i, sequence, /*current,*/ new_item_no, listlen;
+int i, sequence, /*current,*/ new_item_no, listlen;
 	int MC=0;			//markcount for memory
 	unsigned int MR=0;	//markrest for memory
 	char* MB;			//markbuf for memory
@@ -1034,6 +1035,12 @@ int FI_tree::FPmax(FSout* fout)
 		//current=head[sequence]->itemname;
 		fpmax_inst->list->FS[fpmax_inst->list->top++]=head[sequence]->itemname;
 		listlen = fpmax_inst->list->top;
+
+		if(LMaxsets->is_subset())
+		{
+			fpmax_inst->list->top=listlen-1;
+			continue;
+		}
 
 		if(array && sequence>SUDDEN+1)
 			new_item_no=conditional_pattern_base(Current->itemname);  //new_item_no is the number of elements in new header table.

@@ -62,6 +62,52 @@ void fpmax(char const * in, char const * out, unsigned int minsup)
 	delete fpmax_inst;
 }
 
+void fpmax(char const * in, char const * out, unsigned int minsup, unsigned int nlargest)
+{
+	// Reuse in-memory path to support limiting the number of returned itemsets (nlargest)
+	Dataset dataset;
+	Data reader(in);
+	if(!reader.isOpen()) {
+		cerr << in << " could not be opened!" << endl;
+		return;
+	}
+
+	int max_item = -1;
+	while(true) {
+		Transaction* t = reader.getNextTransaction();
+		if(!t) break;
+		std::set<int> trx;
+		for(int i=0; i<t->length; ++i) {
+			trx.insert(t->t[i]);
+			if (t->t[i] > max_item) max_item = t->t[i];
+		}
+		delete t;
+		if(!trx.empty())
+			dataset.push_back(std::move(trx));
+	}
+
+	FISet* fis = fpmax(&dataset, minsup, nlargest);
+	if(!fis) return;
+
+	std::ofstream fout(out);
+	if(!fout.is_open()) {
+		delete fis;
+		cerr << out << " could not be opened for writing!" << endl;
+		return;
+	}
+
+	for(const auto& fi : *fis) {
+		fout << fi.size() << ';' << fi.support() << ';';
+		size_t idx = 0;
+		for(auto it = fi.begin(); it != fi.end(); ++it, ++idx) {
+			fout << *it;
+			if(idx + 1 < fi.size()) fout << ' ';
+		}
+		fout << '\n';
+	}
+	delete fis;
+}
+
 FISet* fpmax(Dataset* dataset, unsigned int minsup, unsigned int nlargest)
 {
 	fpmax_inst = new FPmax(dataset, minsup, nlargest);
@@ -128,9 +174,9 @@ FISet* FPmax::run()
 	prefix = new int[fptree->itemno];
 
 #ifdef CFI
-		list=new stack(fptree->itemno, true); 
+		list=new ::stack(fptree->itemno, true); 
 #else
-		list=new stack(fptree->itemno); 
+		list=new ::stack(fptree->itemno); 
 #endif
 
 	assert(list!=NULL && bran!=NULL && compact!=NULL && ITlen!=NULL && prefix!=NULL);

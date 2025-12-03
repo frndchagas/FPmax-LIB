@@ -1,5 +1,6 @@
 #include "fsout.h"
 #include "common.h"
+#include <algorithm>
 
 FSout::FSout(char const *filename) : frequentItemsets(NULL), nlargest(0)
 {
@@ -43,10 +44,19 @@ void FSout::printSet(int length, int *iset, int support)
 	  fprintf(out,"\n");
   else if (frequentItemsets)
   {
+	  // Poda: se já temos nlargest itens e este é menor que o último, descarta
+	  if (nlargest && frequentItemsets->size() >= nlargest) {
+		  auto worst = frequentItemsets->rbegin();
+		  if (fi.size() <= worst->size()) {
+			  return;
+		  }
+	  }
+
 	  frequentItemsets->insert(fi);
-	  
-	  if (nlargest && frequentItemsets->size() > nlargest)
+
+	  if (nlargest && frequentItemsets->size() > nlargest) {
 		  frequentItemsets->erase(--frequentItemsets->end());
+	  }
   }
   // fprintf(out, "(%d)\n", support);
 //  printf("(%d)\n", support);
